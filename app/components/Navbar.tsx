@@ -4,6 +4,7 @@ import Link from 'next/link';
 const Navbar = () => {
   const navItems = [
     { label: 'Leaderboard', href: '/' },
+    { label: 'Resume', href: '/resume' },
   ];
 
   return (
