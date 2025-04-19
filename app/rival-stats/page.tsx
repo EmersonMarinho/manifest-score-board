@@ -15,6 +15,7 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface RivalStats {
   totalMatches: number;
@@ -77,7 +78,11 @@ interface RivalStats {
 }
 
 export default function RivalStats() {
-  const [selectedRival, setSelectedRival] = React.useState('Guilty');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rivalFromUrl = searchParams.get('rival');
+  
+  const [selectedRival, setSelectedRival] = React.useState(rivalFromUrl || 'Guilty');
   const [matches, setMatches] = React.useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = React.useState<Match | null>(null);
   const [manifestPlayerSearch, setManifestPlayerSearch] = React.useState('');
@@ -87,6 +92,25 @@ export default function RivalStats() {
   const [selectedRivalPlayer, setSelectedRivalPlayer] = React.useState('');
   const [sortBy, setSortBy] = React.useState<'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing'>('kills');
   const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
+
+  // Redirect to Guilty if no rival is specified
+  React.useEffect(() => {
+    if (!rivalFromUrl) {
+      router.push('/rival-stats?rival=Guilty');
+    }
+  }, []);
+
+  // Update URL when rival changes
+  const handleRivalChange = (rival: string) => {
+    setSelectedRival(rival);
+    router.push(`/rival-stats?rival=${rival}`);
+  };
+
+  React.useEffect(() => {
+    if (rivalFromUrl && rivalFromUrl !== selectedRival) {
+      setSelectedRival(rivalFromUrl);
+    }
+  }, [rivalFromUrl]);
 
   React.useEffect(() => {
     fetchMatches();
@@ -545,12 +569,27 @@ export default function RivalStats() {
             <select
               className="bg-gray-800 px-4 py-2 rounded-lg"
               value={selectedRival}
-              onChange={(e) => setSelectedRival(e.target.value)}
+              onChange={(e) => handleRivalChange(e.target.value)}
             >
               <option value="Guilty">Guilty</option>
               <option value="Allyance">Allyance</option>
             </select>
           </div>
+
+          {/* Share button */}
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/rival-stats?rival=${selectedRival}`;
+              navigator.clipboard.writeText(url);
+              alert('URL copied to clipboard!');
+            }}
+            className="mb-6 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+            </svg>
+            Share Stats
+          </button>
 
           {/* Overall Stats */}
           <section className="mb-12">
