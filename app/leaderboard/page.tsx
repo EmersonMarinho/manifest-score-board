@@ -563,10 +563,19 @@ export default function Leaderboard() {
                 <p 
                   className="text-sm text-gray-400 hover:text-purple-400 cursor-pointer"
                   onClick={() => {
-                    const match = matches.find(m => 
+                    // Encontrar todas as partidas do dia contra o mesmo oponente
+                    const matchesOfDay = matches.filter(m => 
                       m.date === topPerformers.topDebuffs.date && 
                       (m.team1 === 'Manifest' ? m.team2 === topPerformers.topDebuffs.match.split(' vs ')[1] : m.team1 === topPerformers.topDebuffs.match.split(' vs ')[1])
                     );
+
+                    // Encontrar a partida onde o jogador teve o maior número de debuffs
+                    const match = matchesOfDay.find(m => {
+                      const manifestPlayers = m.team1 === 'Manifest' ? m.team1Players : m.team2Players;
+                      const player = manifestPlayers.find(p => p.name === topPerformers.topDebuffs.name);
+                      return player && player.debuffs === topPerformers.topDebuffs.value;
+                    });
+
                     if (match) setSelectedMatch(match);
                   }}
                 >

@@ -5,6 +5,7 @@ const Navbar = () => {
   const navItems = [
     { label: 'Leaderboard', href: '/' },
     { label: 'Resume', href: '/resume' },
+    { label: 'Rival Stats', href: '/rival-stats' },
   ];
 
   return (
