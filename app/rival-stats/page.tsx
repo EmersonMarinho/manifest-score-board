@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Navbar from '../components/Navbar';
 import { Match } from '../data/matches';
 import {
@@ -77,7 +77,7 @@ interface RivalStats {
   }>>;
 }
 
-export default function RivalStats() {
+function RivalStatsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rivalFromUrl = searchParams.get('rival');
@@ -1278,5 +1278,22 @@ export default function RivalStats() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function RivalStats() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white pt-16">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse text-2xl">Loading...</div>
+          </div>
+        </div>
+      </div>
+    }>
+      <RivalStatsContent />
+    </Suspense>
   );
 }
