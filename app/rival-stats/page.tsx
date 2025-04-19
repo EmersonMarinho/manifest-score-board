@@ -85,6 +85,8 @@ export default function RivalStats() {
   const [compareMode, setCompareMode] = React.useState(false);
   const [selectedManifestPlayer, setSelectedManifestPlayer] = React.useState('');
   const [selectedRivalPlayer, setSelectedRivalPlayer] = React.useState('');
+  const [sortBy, setSortBy] = React.useState<'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing'>('kills');
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
 
   React.useEffect(() => {
     fetchMatches();
@@ -360,8 +362,71 @@ export default function RivalStats() {
   }, [rivalStats, rivalPlayerSearch, selectedRival]);
 
   if (selectedMatch) {
-    const sortedTeam1Players = [...selectedMatch.team1Players].sort((a, b) => b.kills - a.kills);
-    const sortedTeam2Players = [...selectedMatch.team2Players].sort((a, b) => b.kills - a.kills);
+    const sortPlayers = (players: any[]) => {
+      const sortedPlayers = [...players].sort((a, b) => {
+        switch (sortBy) {
+          case 'kd':
+            const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
+            const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
+            return sortOrder === 'desc' ? kdB - kdA : kdA - kdB;
+          case 'kills':
+            return sortOrder === 'desc' ? b.kills - a.kills : a.kills - b.kills;
+          case 'deaths':
+            return sortOrder === 'desc' ? b.deaths - a.deaths : a.deaths - b.deaths;
+          case 'debuffs':
+            return sortOrder === 'desc' ? b.debuffs - a.debuffs : a.debuffs - b.debuffs;
+          case 'damage':
+            return sortOrder === 'desc' ? b.damage - a.damage : a.damage - b.damage;
+          case 'damageTaken':
+            return sortOrder === 'desc' ? b.damageTaken - a.damageTaken : a.damageTaken - b.damageTaken;
+          case 'healing':
+            return sortOrder === 'desc' ? b.healing - a.healing : a.healing - b.healing;
+          default:
+            return 0;
+        }
+      });
+      return sortedPlayers;
+    };
+
+    const handleSort = (newSortBy: typeof sortBy) => {
+      if (newSortBy === sortBy) {
+        setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+      } else {
+        setSortBy(newSortBy);
+        setSortOrder('desc');
+      }
+    };
+
+    const SortIcon = ({ active, order }: { active: boolean; order: 'asc' | 'desc' }) => (
+      <svg
+        className={`h-4 w-4 inline-block ml-1 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d={order === 'desc' ? "M19 9l-7 7-7-7" : "M5 15l7-7 7 7"}
+        />
+      </svg>
+    );
+
+    const TableHeader = ({ label, value }: { label: string; value: typeof sortBy }) => (
+      <th 
+        className="text-left p-4 cursor-pointer group hover:bg-purple-700 transition-colors"
+        onClick={() => handleSort(value)}
+      >
+        <span className="flex items-center">
+          {label}
+          <SortIcon active={sortBy === value} order={sortOrder} />
+        </span>
+      </th>
+    );
+
+    const sortedTeam1Players = sortPlayers(selectedMatch.team1Players);
+    const sortedTeam2Players = sortPlayers(selectedMatch.team2Players);
 
     return (
       <>
@@ -397,11 +462,11 @@ export default function RivalStats() {
                     <thead className="bg-purple-800">
                       <tr>
                         <th className="text-left p-4">Player</th>
-                        <th className="text-left p-4">K/D</th>
-                        <th className="text-left p-4">Debuffs</th>
-                        <th className="text-left p-4">Dealt</th>
-                        <th className="text-left p-4">Taken</th>
-                        <th className="text-left p-4">Healed</th>
+                        <TableHeader label="K/D" value="kd" />
+                        <TableHeader label="Debuffs" value="debuffs" />
+                        <TableHeader label="Dealt" value="damage" />
+                        <TableHeader label="Taken" value="damageTaken" />
+                        <TableHeader label="Healed" value="healing" />
                       </tr>
                     </thead>
                     <tbody>
@@ -436,11 +501,11 @@ export default function RivalStats() {
                     <thead className="bg-purple-800">
                       <tr>
                         <th className="text-left p-4">Player</th>
-                        <th className="text-left p-4">K/D</th>
-                        <th className="text-left p-4">Debuffs</th>
-                        <th className="text-left p-4">Dealt</th>
-                        <th className="text-left p-4">Taken</th>
-                        <th className="text-left p-4">Healed</th>
+                        <TableHeader label="K/D" value="kd" />
+                        <TableHeader label="Debuffs" value="debuffs" />
+                        <TableHeader label="Dealt" value="damage" />
+                        <TableHeader label="Taken" value="damageTaken" />
+                        <TableHeader label="Healed" value="healing" />
                       </tr>
                     </thead>
                     <tbody>
@@ -525,13 +590,14 @@ export default function RivalStats() {
           {/* Performance Charts */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Performance Over Time</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8">
+              {/* Match Score - Full width */}
               <div className="bg-gray-800 p-6 rounded-lg">
                 <h3 className="text-xl font-bold mb-4">Match Score</h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={rivalStats.matchHistory}
+                      data={rivalStats.matchHistory.filter(match => match.rivalGuild === selectedRival)}
                       margin={{
                         top: 20,
                         right: 30,
@@ -541,116 +607,103 @@ export default function RivalStats() {
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" stroke="#9CA3AF" />
-                      <YAxis stroke="#9CA3AF" />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
-                        labelStyle={{ color: '#9CA3AF' }}
-                        formatter={(value: number, name: string) => [`${value} kills`, name]}
-                      />
-                      <Legend />
-                      <Bar dataKey="kills" name="Manifest" fill="#10B981" />
-                      <Bar dataKey="rivalKills" name={selectedRival} fill="#EF4444" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-4">Damage Comparison</h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={rivalStats.matchHistory}
-                      margin={{
-                        top: 20,
-                        right: 30,
-                        left: 80,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="date" stroke="#9CA3AF" />
-                      <YAxis 
-                        stroke="#9CA3AF"
-                        tickFormatter={(value) => value.toLocaleString()}
-                      />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
-                        labelStyle={{ color: '#9CA3AF' }}
-                        formatter={(value) => value.toLocaleString()}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="damage"
-                        fill="#8B5CF6"
-                        name="Manifest Damage"
-                        stackId="a"
-                      />
-                      <Bar
-                        dataKey="rivalDamage"
-                        fill="#EC4899"
-                        name={selectedRival}
-                        stackId="a"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-4">Debuffs Comparison</h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={rivalStats.matchHistory}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="date" stroke="#9CA3AF" />
-                      <YAxis stroke="#9CA3AF" />
+                      <YAxis stroke="#9CA3AF" domain={[0, 100]} />
                       <Tooltip
                         contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
                         labelStyle={{ color: '#9CA3AF' }}
                       />
                       <Legend />
                       <Bar
-                        dataKey="debuffs"
+                        dataKey="kills"
                         fill="#10B981"
-                        name="Manifest Debuffs"
-                        stackId="b"
+                        name="Manifest"
                       />
                       <Bar
-                        dataKey="rivalDebuffs"
+                        dataKey="rivalKills"
                         fill="#EF4444"
                         name={selectedRival}
-                        stackId="b"
                       />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-xl font-bold mb-4">Match Results</h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={rivalStats.matchHistory}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="date" stroke="#9CA3AF" />
-                      <YAxis stroke="#9CA3AF" />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
-                        labelStyle={{ color: '#9CA3AF' }}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey={(data) => data.result === 'Victory' ? 1 : 0}
-                        fill="#10B981"
-                        name="Victory"
-                        stackId="c"
-                      />
-                      <Bar
-                        dataKey={(data) => data.result === 'Defeat' ? 1 : 0}
-                        fill="#EF4444"
-                        name="Defeat"
-                        stackId="c"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+
+              {/* Damage and Debuffs - Side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-gray-800 p-6 rounded-lg">
+                  <h3 className="text-xl font-bold mb-4">Damage Comparison</h3>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={rivalStats.matchHistory.filter(match => match.rivalGuild === selectedRival)}
+                        margin={{
+                          top: 20,
+                          right: 30,
+                          left: 80,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="date" stroke="#9CA3AF" />
+                        <YAxis 
+                          stroke="#9CA3AF"
+                          tickFormatter={(value) => value.toLocaleString()}
+                        />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
+                          labelStyle={{ color: '#9CA3AF' }}
+                          formatter={(value) => value.toLocaleString()}
+                        />
+                        <Legend />
+                        <Bar
+                          dataKey="damage"
+                          fill="#10B981"
+                          name="Manifest"
+                        />
+                        <Bar
+                          dataKey="rivalDamage"
+                          fill="#EF4444"
+                          name={selectedRival}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800 p-6 rounded-lg">
+                  <h3 className="text-xl font-bold mb-4">Debuffs Comparison</h3>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={rivalStats.matchHistory.filter(match => match.rivalGuild === selectedRival)}
+                        margin={{
+                          top: 20,
+                          right: 30,
+                          left: 50,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="date" stroke="#9CA3AF" />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1F2937', border: 'none' }}
+                          labelStyle={{ color: '#9CA3AF' }}
+                        />
+                        <Legend />
+                        <Bar
+                          dataKey="debuffs"
+                          fill="#10B981"
+                          name="Manifest"
+                        />
+                        <Bar
+                          dataKey="rivalDebuffs"
+                          fill="#EF4444"
+                          name={selectedRival}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </div>
@@ -676,7 +729,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.manifest.kills.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === 'Manifest' 
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.manifest.kills.name && p.kills === rivalStats.topPerformers.manifest.kills.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.manifest.kills.name && p.kills === rivalStats.topPerformers.manifest.kills.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -697,7 +754,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.manifest.deaths.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === 'Manifest' 
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.manifest.deaths.name && p.deaths === rivalStats.topPerformers.manifest.deaths.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.manifest.deaths.name && p.deaths === rivalStats.topPerformers.manifest.deaths.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -718,7 +779,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.manifest.damage.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === 'Manifest' 
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.manifest.damage.name && p.damage === rivalStats.topPerformers.manifest.damage.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.manifest.damage.name && p.damage === rivalStats.topPerformers.manifest.damage.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -739,7 +804,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.manifest.debuffs.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === 'Manifest' 
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.manifest.debuffs.name && p.debuffs === rivalStats.topPerformers.manifest.debuffs.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.manifest.debuffs.name && p.debuffs === rivalStats.topPerformers.manifest.debuffs.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -767,7 +836,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.rivals[selectedRival].kills.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === selectedRival
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].kills.name && p.kills === rivalStats.topPerformers.rivals[selectedRival].kills.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].kills.name && p.kills === rivalStats.topPerformers.rivals[selectedRival].kills.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -788,7 +861,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.rivals[selectedRival].deaths.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === selectedRival
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].deaths.name && p.deaths === rivalStats.topPerformers.rivals[selectedRival].deaths.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].deaths.name && p.deaths === rivalStats.topPerformers.rivals[selectedRival].deaths.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -809,7 +886,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.rivals[selectedRival].damage.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === selectedRival
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].damage.name && p.damage === rivalStats.topPerformers.rivals[selectedRival].damage.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].damage.name && p.damage === rivalStats.topPerformers.rivals[selectedRival].damage.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -830,7 +911,11 @@ export default function RivalStats() {
                     onClick={() => {
                       const match = matches.find(m => 
                         m.date === rivalStats.topPerformers.rivals[selectedRival].debuffs.date && 
-                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival)
+                        (m.team1 === 'Manifest' ? m.team2 === selectedRival : m.team1 === selectedRival) &&
+                        (m.team1 === selectedRival
+                          ? m.team1Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].debuffs.name && p.debuffs === rivalStats.topPerformers.rivals[selectedRival].debuffs.value)
+                          : m.team2Players.some(p => p.name === rivalStats.topPerformers.rivals[selectedRival].debuffs.name && p.debuffs === rivalStats.topPerformers.rivals[selectedRival].debuffs.value)
+                        )
                       );
                       if (match) setSelectedMatch(match);
                     }}
@@ -925,39 +1010,55 @@ export default function RivalStats() {
                         <h4 className="text-xl font-bold text-green-400 mb-4">{selectedManifestPlayer}</h4>
                         <div className="grid gap-4">
                           <div className="bg-gray-900 p-4 rounded-lg">
+                            <p className="text-sm text-gray-400">Matches Played</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {rivalStats.playerStats.get(selectedManifestPlayer)?.matches || 0}
+                            </p>
+                          </div>
+                          <div className="bg-gray-900 p-4 rounded-lg">
                             <p className="text-sm text-gray-400">K/D Ratio</p>
                             <p className="text-3xl font-bold text-purple-400">
                               {((rivalStats.playerStats.get(selectedManifestPlayer)?.kills || 0) / 
                                 (rivalStats.playerStats.get(selectedManifestPlayer)?.deaths || 1)).toFixed(2)}
                             </p>
                             <div className="flex justify-center items-center gap-2 mt-2">
-                              <span className="text-green-400 text-lg font-semibold">
+                              <div className="text-green-400 text-lg font-semibold">
                                 {rivalStats.playerStats.get(selectedManifestPlayer)?.kills || 0}
-                              </span>
-                              <span className="text-gray-500">/</span>
-                              <span className="text-red-400 text-lg font-semibold">
+                              </div>
+                              <div className="text-gray-500">/</div>
+                              <div className="text-red-400 text-lg font-semibold">
                                 {rivalStats.playerStats.get(selectedManifestPlayer)?.deaths || 0}
-                              </span>
+                              </div>
                             </div>
                           </div>
                           <div className="bg-gray-900 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400">Win Rate</p>
-                            <p className="text-2xl font-bold">
-                              {((rivalStats.playerStats.get(selectedManifestPlayer)?.victories || 0) /
-                                (rivalStats.playerStats.get(selectedManifestPlayer)?.matches || 1) *
-                                100).toFixed(1)}%
+                            <p className="text-sm text-gray-400">Avg Damage per Match</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {Math.round((rivalStats.playerStats.get(selectedManifestPlayer)?.damage || 0) / 
+                                (rivalStats.playerStats.get(selectedManifestPlayer)?.matches || 1)).toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Total: {(rivalStats.playerStats.get(selectedManifestPlayer)?.damage || 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="bg-gray-900 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400">Total Damage</p>
-                            <p className="text-2xl font-bold">
-                              {(rivalStats.playerStats.get(selectedManifestPlayer)?.damage || 0).toLocaleString()}
+                            <p className="text-sm text-gray-400">Avg Damage Taken per Match</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {Math.round((rivalStats.playerStats.get(selectedManifestPlayer)?.damageTaken || 0) / 
+                                (rivalStats.playerStats.get(selectedManifestPlayer)?.matches || 1)).toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Total: {(rivalStats.playerStats.get(selectedManifestPlayer)?.damageTaken || 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="bg-gray-900 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400">Total Debuffs</p>
-                            <p className="text-2xl font-bold">
-                              {rivalStats.playerStats.get(selectedManifestPlayer)?.debuffs || 0}
+                            <p className="text-sm text-gray-400">Avg Debuffs per Match</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {Math.round((rivalStats.playerStats.get(selectedManifestPlayer)?.debuffs || 0) / 
+                                (rivalStats.playerStats.get(selectedManifestPlayer)?.matches || 1))}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Total: {rivalStats.playerStats.get(selectedManifestPlayer)?.debuffs || 0}
                             </p>
                           </div>
                         </div>
@@ -971,39 +1072,55 @@ export default function RivalStats() {
                         <h4 className="text-xl font-bold text-red-400 mb-4">{selectedRivalPlayer}</h4>
                         <div className="grid gap-4">
                           <div className="bg-gray-900 p-4 rounded-lg">
+                            <p className="text-sm text-gray-400">Matches Played</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.matches || 0}
+                            </p>
+                          </div>
+                          <div className="bg-gray-900 p-4 rounded-lg">
                             <p className="text-sm text-gray-400">K/D Ratio</p>
                             <p className="text-3xl font-bold text-purple-400">
                               {((rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.kills || 0) / 
                                 (rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.deaths || 1)).toFixed(2)}
                             </p>
                             <div className="flex justify-center items-center gap-2 mt-2">
-                              <span className="text-green-400 text-lg font-semibold">
+                              <div className="text-green-400 text-lg font-semibold">
                                 {rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.kills || 0}
-                              </span>
-                              <span className="text-gray-500">/</span>
-                              <span className="text-red-400 text-lg font-semibold">
+                              </div>
+                              <div className="text-gray-500">/</div>
+                              <div className="text-red-400 text-lg font-semibold">
                                 {rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.deaths || 0}
-                              </span>
+                              </div>
                             </div>
                           </div>
                           <div className="bg-gray-900 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400">Win Rate</p>
-                            <p className="text-2xl font-bold">
-                              {((rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.victories || 0) /
-                                (rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.matches || 1) *
-                                100).toFixed(1)}%
+                            <p className="text-sm text-gray-400">Avg Damage per Match</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {Math.round((rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.damage || 0) / 
+                                (rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.matches || 1)).toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Total: {(rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.damage || 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="bg-gray-900 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400">Total Damage</p>
-                            <p className="text-2xl font-bold">
-                              {(rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.damage || 0).toLocaleString()}
+                            <p className="text-sm text-gray-400">Avg Damage Taken per Match</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {Math.round((rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.damageTaken || 0) / 
+                                (rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.matches || 1)).toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Total: {(rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.damageTaken || 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="bg-gray-900 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400">Total Debuffs</p>
-                            <p className="text-2xl font-bold">
-                              {rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.debuffs || 0}
+                            <p className="text-sm text-gray-400">Avg Debuffs per Match</p>
+                            <p className="text-2xl font-bold text-purple-400">
+                              {Math.round((rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.debuffs || 0) / 
+                                (rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.matches || 1))}
+                            </p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              Total: {rivalStats.rivalPlayerStats[selectedRival].get(selectedRivalPlayer)?.debuffs || 0}
                             </p>
                           </div>
                         </div>
