@@ -1,65 +1,137 @@
 # Manifest Score Board
 
-A Next.js application for tracking and displaying match results and player statistics for the Manifest guild in Black Desert Online.
+Aplicação web para acompanhamento de estatísticas de GvG (Guild vs Guild) do jogo Black Desert Online.
 
-## Features
+## 🚀 Funcionalidades
 
-- Match tracking with detailed player statistics
-- Player performance leaderboards
-- Guild match history
-- Admin panel for managing matches
-- Real-time statistics and filtering
-- Responsive design for all devices
+- **Upload de Screenshots**: Extração automática de dados de resultados de GvG através de screenshots
+- **Estatísticas Detalhadas**: 
+  - Histórico completo de partidas
+  - Estatísticas por jogador
+  - Comparação entre guilds rivais
+  - Gráficos de desempenho
+- **Leaderboard**: Ranking de jogadores baseado em diferentes métricas
+- **Área Administrativa**: Gerenciamento de dados e configurações
 
-## Tech Stack
+## 🛠️ Tecnologias Utilizadas
 
-- Next.js 14
-- TypeScript
+- **Frontend**:
+  - Next.js
+  - React
+  - TypeScript
+  - Tailwind CSS
+  - Recharts (gráficos)
+- **Backend**:
+  - Python (OCR e processamento de imagens)
+  - FastAPI
+  - MongoDB (armazenamento de dados)
+
+## 📋 Pré-requisitos
+
+- Node.js (v18 ou superior)
+- Python (v3.9 ou superior)
 - MongoDB
-- Tailwind CSS
-- React
+- npm ou yarn
 
-## Getting Started
+## 🔧 Instalação
 
-1. Clone the repository:
+1. Clone o repositório:
 ```bash
 git clone https://github.com/EmersonMarinho/manifest-score-board.git
-```
-
-2. Install dependencies:
-```bash
 cd manifest-score-board
-npm install
 ```
 
-3. Create a `.env.local` file in the root directory and add your MongoDB URI:
-```
-MONGODB_URI=your_mongodb_uri_here
-```
-
-4. Run the development server:
+2. Instale as dependências do frontend:
 ```bash
-npm run dev
+npm install
+# ou
+yarn install
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Instale as dependências do backend:
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-## Environment Variables
+4. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+```
 
-- `MONGODB_URI`: Your MongoDB connection string
+5. Inicie o servidor de desenvolvimento:
+```bash
+# Terminal 1 - Frontend
+npm run dev
+# ou
+yarn dev
 
-## Contributing
+# Terminal 2 - Backend
+cd backend
+python main.py
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📁 Estrutura do Projeto
 
-## License
+```
+manifest-score-board/
+├── app/                    # Frontend Next.js
+│   ├── components/         # Componentes React
+│   ├── pages/             # Páginas da aplicação
+│   └── styles/            # Estilos globais
+├── backend/               # Backend Python
+│   ├── api/              # Endpoints da API
+│   ├── models/           # Modelos de dados
+│   └── utils/            # Utilitários
+└── public/               # Arquivos estáticos
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📊 Funcionalidades Principais
 
-## Credits
+### Upload de Screenshots
+- Suporte para diferentes formatos de imagem
+- Extração automática de dados como:
+  - Nomes das guilds
+  - Pontuações
+  - Estatísticas dos jogadores
+  - Resultado da partida
 
-Created by Skito programação de hackers LTDA
+### Estatísticas de Rivalidade
+- Comparação detalhada com guilds rivais
+- Histórico de partidas
+- Gráficos de desempenho
+- Estatísticas por jogador
+- Top performers
+
+### Leaderboard
+- Ranking por diferentes métricas:
+  - K/D Ratio
+  - Total de kills
+  - Dano causado
+  - Debuffs aplicados
+  - Taxa de vitória
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## ✨ Próximos Passos
+
+- [ ] Implementar autenticação de usuários
+- [ ] Adicionar mais tipos de gráficos e visualizações
+- [ ] Melhorar a precisão do OCR
+- [ ] Adicionar suporte para mais formatos de screenshot
+- [ ] Implementar notificações para novas partidas
+
+## 📞 Suporte
+
+Para suporte, envie um email para [seu-email@exemplo.com] ou abra uma issue no GitHub.
