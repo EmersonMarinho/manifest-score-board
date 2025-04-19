@@ -131,7 +131,3 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - [ ] Melhorar a precisão do OCR
 - [ ] Adicionar suporte para mais formatos de screenshot
 - [ ] Implementar notificações para novas partidas
-
-## 📞 Suporte
-
-Para suporte, envie um email para [seu-email@exemplo.com] ou abra uma issue no GitHub.
