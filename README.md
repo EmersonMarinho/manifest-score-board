@@ -1,133 +1,159 @@
-# Manifest Score Board
+# MANIFEST Gaming Guild - Sistema de Estatísticas
 
-Aplicação web para acompanhamento de estatísticas de GvG (Guild vs Guild) do jogo Black Desert Online.
+## 🎮 Sobre o Projeto
+Sistema de gerenciamento de estatísticas para a guilda MANIFEST no Black Desert Online. O projeto permite o registro e análise de partidas, estatísticas de jogadores e composições de times.
 
-## 🚀 Funcionalidades
+## 🚀 Tecnologias Utilizadas
+- **Next.js 14** - Framework React com suporte a SSR e API Routes
+- **TypeScript** - Tipagem estática para maior segurança e melhor desenvolvimento
+- **MongoDB** - Banco de dados NoSQL para armazenamento flexível
+- **Mongoose** - ODM para MongoDB
+- **Tailwind CSS** - Framework CSS para estilização rápida e responsiva
+- **Node.js** - Runtime JavaScript para scripts e automação
 
-- **Upload de Screenshots**: Extração automática de dados de resultados de GvG através de screenshots
-- **Estatísticas Detalhadas**: 
-  - Histórico completo de partidas
-  - Estatísticas por jogador
-  - Comparação entre guilds rivais
-  - Gráficos de desempenho
-- **Leaderboard**: Ranking de jogadores baseado em diferentes métricas
-- **Área Administrativa**: Gerenciamento de dados e configurações
+## 💻 Funcionalidades Principais
 
-## 🛠️ Tecnologias Utilizadas
+### 1. Sistema de Estatísticas
+- Registro de partidas com detalhes completos
+- Estatísticas individuais de jogadores (K/D, dano, cura, etc.)
+- Análise de desempenho por jogador
+- Visualização de histórico de partidas
 
-- **Frontend**:
-  - Next.js
-  - React
-  - TypeScript
-  - Tailwind CSS
-  - Recharts (gráficos)
-- **Backend**:
-  - Python (OCR e processamento de imagens)
-  - FastAPI
-  - MongoDB (armazenamento de dados)
+### 2. API RESTful
+- Endpoints para CRUD de partidas
+- Validação de dados
+- Tratamento de erros
+- Respostas padronizadas
 
-## 📋 Pré-requisitos
+### 3. Interface Responsiva
+- Design moderno e intuitivo
+- Visualização de dados em gráficos
+- Navegação simplificada
+- Adaptação para diferentes dispositivos
 
-- Node.js (v18 ou superior)
-- Python (v3.9 ou superior)
-- MongoDB
-- npm ou yarn
+### 4. Automação
+- Scripts para processamento de dados
+- Validação automática de informações
+- Backup do banco de dados
+- Importação de dados via texto
 
-## 🔧 Instalação
+## 🛠️ Estrutura do Projeto
+```
+manifestwebsite/
+├── app/                    # Código principal da aplicação
+│   ├── api/               # Endpoints da API
+│   ├── components/        # Componentes React reutilizáveis
+│   ├── models/           # Modelos do MongoDB
+│   └── pages/            # Páginas da aplicação
+├── data/                  # Dados estáticos e backups
+├── public/               # Arquivos públicos
+└── scripts/              # Scripts de automação
+```
 
-1. Clone o repositório:
+## 🔧 Configuração do Ambiente
+
+1. **Pré-requisitos**
+   - Node.js 18+
+   - MongoDB
+   - npm ou yarn
+
+2. **Instalação**
+   ```bash
+   # Clonar o repositório
+   git clone [URL_DO_REPOSITÓRIO]
+
+   # Instalar dependências
+   npm install
+
+   # Configurar variáveis de ambiente
+   cp .env.example .env.local
+
+   # Iniciar o servidor de desenvolvimento
+   npm run dev
+   ```
+
+3. **Configuração do Banco de Dados**
+   - Criar banco de dados MongoDB
+   - Configurar string de conexão no .env.local
+   - Executar scripts de inicialização
+
+## 📊 Modelo de Dados
+
+### Partida (Match)
+```typescript
+interface Match {
+  date: string;
+  team1: string;
+  team2: string;
+  result: 'Victory' | 'Defeat';
+  team1Score: number;
+  team2Score: number;
+  team1Players: PlayerStats[];
+  team2Players: PlayerStats[];
+}
+```
+
+### Estatísticas do Jogador (PlayerStats)
+```typescript
+interface PlayerStats {
+  name: string;
+  kills: number;
+  deaths: number;
+  debuffs: number;
+  damage: number;
+  damageTaken: number;
+  healing: number;
+}
+```
+
+## 🚀 Scripts Úteis
+
+### Processamento de Dados
 ```bash
-git clone https://github.com/EmersonMarinho/manifest-score-board.git
-cd manifest-score-board
+# Processar dados de uma partida
+node scripts/quick-submit.js
+
+# Fazer backup do banco de dados
+node scripts/backup-db.js
+
+# Restaurar backup
+node scripts/restore-db.js
 ```
 
-2. Instale as dependências do frontend:
-```bash
-npm install
-# ou
-yarn install
-```
+## 🔍 Pontos de Destaque para Portfólio
 
-3. Instale as dependências do backend:
-```bash
-cd backend
-pip install -r requirements.txt
-```
+1. **Arquitetura Moderna**
+   - Uso de Next.js 14 com App Router
+   - API Routes para backend
+   - TypeScript para tipagem estática
 
-4. Configure as variáveis de ambiente:
-```bash
-cp .env.example .env
-# Edite o arquivo .env com suas configurações
-```
+2. **Boas Práticas**
+   - Código organizado e documentado
+   - Validação de dados
+   - Tratamento de erros
+   - Testes automatizados
 
-5. Inicie o servidor de desenvolvimento:
-```bash
-# Terminal 1 - Frontend
-npm run dev
-# ou
-yarn dev
+3. **Recursos Técnicos**
+   - Integração com MongoDB
+   - Automação de processos
+   - Interface responsiva
+   - Visualização de dados
 
-# Terminal 2 - Backend
-cd backend
-python main.py
-```
+4. **Aspectos de DevOps**
+   - Scripts de backup
+   - Configuração de ambiente
+   - Documentação clara
+   - Versionamento com Git
 
-## 📁 Estrutura do Projeto
-
-```
-manifest-score-board/
-├── app/                    # Frontend Next.js
-│   ├── components/         # Componentes React
-│   ├── pages/             # Páginas da aplicação
-│   └── styles/            # Estilos globais
-├── backend/               # Backend Python
-│   ├── api/              # Endpoints da API
-│   ├── models/           # Modelos de dados
-│   └── utils/            # Utilitários
-└── public/               # Arquivos estáticos
-```
-
-## 📊 Funcionalidades Principais
-
-### Upload de Screenshots
-- Suporte para diferentes formatos de imagem
-- Extração automática de dados como:
-  - Nomes das guilds
-  - Pontuações
-  - Estatísticas dos jogadores
-  - Resultado da partida
-
-### Estatísticas de Rivalidade
-- Comparação detalhada com guilds rivais
-- Histórico de partidas
-- Gráficos de desempenho
-- Estatísticas por jogador
-- Top performers
-
-### Leaderboard
-- Ranking por diferentes métricas:
-  - K/D Ratio
-  - Total de kills
-  - Dano causado
-  - Debuffs aplicados
-  - Taxa de vitória
+## 📈 Melhorias Futuras
+- [ ] Sistema de autenticação
+- [ ] Dashboard administrativo
+- [ ] Exportação de relatórios
+- [ ] Integração com Discord
+- [ ] Sistema de notificações
 
 ## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
 
 ## 📝 Licença
-
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## ✨ Próximos Passos
-
-- [ ] Implementar autenticação de usuários
-- [ ] Adicionar mais tipos de gráficos e visualizações
-- [ ] Melhorar a precisão do OCR
-- [ ] Adicionar suporte para mais formatos de screenshot
-- [ ] Implementar notificações para novas partidas
