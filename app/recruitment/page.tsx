@@ -37,7 +37,7 @@ const content = {
         title: "Technical Requirements",
         items: [
           { icon: "⚔️", text: "Gear Score: Hardcap / close to hardcap 790 GS" },
-          { icon: "🎯", text: "Class: Sage Awakening, Hashashin Succession" },
+          { icon: "🎯", text: "Class: Based on the classes requested in the form" },
           { icon: "💻", text: "Good internet connection and PC setup" }
         ]
       },
@@ -120,7 +120,7 @@ const content = {
         title: "Requisitos Técnicos",
         items: [
           { icon: "⚔️", text: "Gear Score: Hardcap / próximo ao hardcap 790 GS" },
-          { icon: "🎯", text: "Classe: Sage Awakening, Hashashin Sucessão" },
+          { icon: "🎯", text: "Classe: Baseado nas classes solicitadas no formulário" },
           { icon: "💻", text: "Boa conexão com a internet e configuração de PC" }
         ]
       },
@@ -175,7 +175,7 @@ const content = {
 };
 
 export default function Recruitment() {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('pt');
   const t = content[language];
 
   return (
@@ -187,9 +187,10 @@ export default function Recruitment() {
           <div className="flex justify-end mb-8">
             <button
               onClick={() => setLanguage(language === 'en' ? 'pt' : 'en')}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg text-lg font-semibold flex items-center gap-2"
             >
-              {language === 'en' ? 'PT' : 'EN'}
+              <span>{language === 'en' ? '🇧🇷' : '🇺🇸'}</span>
+              {language === 'en' ? 'Português' : 'English'}
             </button>
           </div>
 
@@ -270,7 +271,7 @@ export default function Recruitment() {
                   <p className="text-gray-400 text-center">{step.description}</p>
                   {index === 0 && (
                     <div className="mt-6 text-center">
-                      <a href="https://discord.gg/your-discord" target="_blank" rel="noopener noreferrer" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg inline-block">
+                      <a href="https://forms.gle/dYjcnDk7AyZGUMB1A" target="_blank" rel="noopener noreferrer" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg inline-block">
                         {language === 'en' ? 'Submit Application' : 'Preencha o Formulário'}
                       </a>
                     </div>
