@@ -6,6 +6,7 @@ const Navbar = () => {
     { label: 'Leaderboard', href: '/' },
     { label: 'Resume', href: '/resume' },
     { label: 'Rival Stats', href: '/rival-stats' },
+    { label: 'Recruitment', href: '/recruitment' },
   ];
 
   return (
