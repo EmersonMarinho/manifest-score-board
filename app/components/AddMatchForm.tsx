@@ -24,26 +24,54 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
     if (!form) return 0;
 
     let total = 0;
-    const prefix = teamNumber === 1 ? '' : 'opponent';
     
-    for (let i = 1; i <= 10; i++) {
-      const killsInput = form.querySelector(`[name="${prefix}kills${i}"]`) as HTMLInputElement;
-      if (killsInput && killsInput.value) {
-        // Multiplicar cada kill por 10
-        total += (parseInt(killsInput.value) || 0) * 10;
+    if (teamNumber === 1) {
+      // Calcular pontos da equipe 1 (Manifest)
+      // Kills da equipe 1
+      for (let i = 1; i <= 10; i++) {
+        const killsInput = form.querySelector(`[name="kills${i}"]`) as HTMLInputElement;
+        if (killsInput && killsInput.value) {
+          total += (parseInt(killsInput.value) || 0) * 10;
+        }
       }
-    }
-
-    // Adicionar 40 pontos se tiver firstblood
-    if ((teamNumber === 1 && team1FirstBlood) || (teamNumber === 2 && team2FirstBlood)) {
-      total += 40;
+      // Mortes da equipe 2 (pontos para equipe 1)
+      for (let i = 1; i <= 10; i++) {
+        const deathsInput = form.querySelector(`[name="opponentDeaths${i}"]`) as HTMLInputElement;
+        if (deathsInput && deathsInput.value) {
+          total += (parseInt(deathsInput.value) || 0) * 10;
+        }
+      }
+      // First Blood da equipe 1
+      if (team1FirstBlood) {
+        total += 40;
+      }
+    } else {
+      // Calcular pontos da equipe 2 (Oponentes)
+      // Kills da equipe 2
+      for (let i = 1; i <= 10; i++) {
+        const killsInput = form.querySelector(`[name="opponentKills${i}"]`) as HTMLInputElement;
+        if (killsInput && killsInput.value) {
+          total += (parseInt(killsInput.value) || 0) * 10;
+        }
+      }
+      // Mortes da equipe 1 (pontos para equipe 2)
+      for (let i = 1; i <= 10; i++) {
+        const deathsInput = form.querySelector(`[name="deaths${i}"]`) as HTMLInputElement;
+        if (deathsInput && deathsInput.value) {
+          total += (parseInt(deathsInput.value) || 0) * 10;
+        }
+      }
+      // First Blood da equipe 2
+      if (team2FirstBlood) {
+        total += 40;
+      }
     }
 
     // Limitar o total a 1000 pontos
     return Math.min(total, 1000);
   };
 
-  // Atualizar totais quando os inputs de kills mudarem
+  // Atualizar totais quando os inputs de kills ou deaths mudarem
   const handleKillsChange = () => {
     setTeam1TotalKills(calculateTeamKills(1));
     setTeam2TotalKills(calculateTeamKills(2));
@@ -58,6 +86,9 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
       setTeam2FirstBlood(!team2FirstBlood);
       setTeam1FirstBlood(false);
     }
+    // Recalcular totais após mudar o First Blood
+    setTeam1TotalKills(calculateTeamKills(1));
+    setTeam2TotalKills(calculateTeamKills(2));
   };
 
   // Reset form when editingMatch changes
@@ -374,6 +405,7 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
                     name={`opponentDeaths${i + 1}`}
                     placeholder="D"
                     min="0"
+                    onChange={handleKillsChange}
                     className="w-full bg-gray-800 rounded px-2 py-1 text-sm"
                   />
                 </div>
