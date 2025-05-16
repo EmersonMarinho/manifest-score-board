@@ -13,6 +13,52 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [team1FirstBlood, setTeam1FirstBlood] = useState(false);
+  const [team2FirstBlood, setTeam2FirstBlood] = useState(false);
+  const [team1TotalKills, setTeam1TotalKills] = useState(0);
+  const [team2TotalKills, setTeam2TotalKills] = useState(0);
+
+  // Função para calcular o total de kills de uma equipe
+  const calculateTeamKills = (teamNumber: 1 | 2) => {
+    const form = document.querySelector('form');
+    if (!form) return 0;
+
+    let total = 0;
+    const prefix = teamNumber === 1 ? '' : 'opponent';
+    
+    for (let i = 1; i <= 10; i++) {
+      const killsInput = form.querySelector(`[name="${prefix}kills${i}"]`) as HTMLInputElement;
+      if (killsInput && killsInput.value) {
+        // Multiplicar cada kill por 10
+        total += (parseInt(killsInput.value) || 0) * 10;
+      }
+    }
+
+    // Adicionar 40 pontos se tiver firstblood
+    if ((teamNumber === 1 && team1FirstBlood) || (teamNumber === 2 && team2FirstBlood)) {
+      total += 40;
+    }
+
+    // Limitar o total a 1000 pontos
+    return Math.min(total, 1000);
+  };
+
+  // Atualizar totais quando os inputs de kills mudarem
+  const handleKillsChange = () => {
+    setTeam1TotalKills(calculateTeamKills(1));
+    setTeam2TotalKills(calculateTeamKills(2));
+  };
+
+  // Atualizar totais quando o firstblood mudar
+  const handleFirstBloodChange = (team: 1 | 2) => {
+    if (team === 1) {
+      setTeam1FirstBlood(!team1FirstBlood);
+      setTeam2FirstBlood(false);
+    } else {
+      setTeam2FirstBlood(!team2FirstBlood);
+      setTeam1FirstBlood(false);
+    }
+  };
 
   // Reset form when editingMatch changes
   useEffect(() => {
@@ -64,8 +110,10 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
       team1: 'Manifest',
       team2: formData.get('opponent') as string,
       result: formData.get('result') as 'Victory' | 'Defeat',
-      team1Score: parseInt(formData.get('team1Score') as string),
-      team2Score: parseInt(formData.get('team2Score') as string),
+      team1Score: team1TotalKills,
+      team2Score: team2TotalKills,
+      team1FirstBlood,
+      team2FirstBlood,
       team1Players: Array.from({ length: 10 }, (_, i) => ({
         name: formData.get(`player${i + 1}`) as string || '',
         kills: parseInt(formData.get(`kills${i + 1}`) as string || '0'),
@@ -183,26 +231,42 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
                 <option value="Defeat">Defeat</option>
               </select>
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Our Score</label>
-                <input
-                  type="number"
-                  name="team1Score"
-                  required
-                  min="0"
-                  className="w-full bg-gray-800 rounded px-3 py-2"
-                />
+                <div className="text-2xl font-bold text-purple-500">{team1TotalKills}</div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Their Score</label>
+                <div className="text-2xl font-bold text-purple-500">{team2TotalKills}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
                 <input
-                  type="number"
-                  name="team2Score"
-                  required
-                  min="0"
-                  className="w-full bg-gray-800 rounded px-3 py-2"
+                  type="checkbox"
+                  id="team1FirstBlood"
+                  checked={team1FirstBlood}
+                  onChange={() => handleFirstBloodChange(1)}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                 />
+                <label htmlFor="team1FirstBlood" className="text-sm font-medium">
+                  Our First Blood (+40)
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="team2FirstBlood"
+                  checked={team2FirstBlood}
+                  onChange={() => handleFirstBloodChange(2)}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <label htmlFor="team2FirstBlood" className="text-sm font-medium">
+                  Their First Blood (+40)
+                </label>
               </div>
             </div>
           </div>
@@ -227,6 +291,7 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
                     name={`kills${i + 1}`}
                     placeholder="K"
                     min="0"
+                    onChange={handleKillsChange}
                     className="w-full bg-gray-800 rounded px-2 py-1 text-sm"
                   />
                 </div>
@@ -299,6 +364,7 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
                     name={`opponentKills${i + 1}`}
                     placeholder="K"
                     min="0"
+                    onChange={handleKillsChange}
                     className="w-full bg-gray-800 rounded px-2 py-1 text-sm"
                   />
                 </div>
