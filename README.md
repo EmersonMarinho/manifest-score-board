@@ -1,43 +1,59 @@
 # MANIFEST Gaming Guild - Sistema de Estatísticas
 
 ## 🎮 Sobre o Projeto
+
 Sistema de gerenciamento de estatísticas para a guilda MANIFEST no Black Desert Online. O projeto permite o registro e análise de partidas, estatísticas de jogadores e composições de times.
 
 ## 🚀 Tecnologias Utilizadas
+
 - **Next.js 14** - Framework React com suporte a SSR e API Routes
 - **TypeScript** - Tipagem estática para maior segurança e melhor desenvolvimento
 - **MongoDB** - Banco de dados NoSQL para armazenamento flexível
 - **Mongoose** - ODM para MongoDB
 - **Tailwind CSS** - Framework CSS para estilização rápida e responsiva
 - **Node.js** - Runtime JavaScript para scripts e automação
+- **Twitch API** - Integração com streams ao vivo dos membros da guilda
 
 ## 💻 Funcionalidades Principais
 
 ### 1. Sistema de Estatísticas
+
 - Registro de partidas com detalhes completos
 - Estatísticas individuais de jogadores (K/D, dano, cura, etc.)
 - Análise de desempenho por jogador
 - Visualização de histórico de partidas
 
-### 2. API RESTful
+### 2. Integração com Twitch
+
+- Player embutido para streams ao vivo
+- Lista de membros da guilda que fazem stream
+- Thumbnails e informações das streams
+- Atualização automática a cada 5 minutos
+- Fallback quando não há streams ativas
+
+### 3. API RESTful
+
 - Endpoints para CRUD de partidas
 - Validação de dados
 - Tratamento de erros
 - Respostas padronizadas
 
-### 3. Interface Responsiva
+### 4. Interface Responsiva
+
 - Design moderno e intuitivo
 - Visualização de dados em gráficos
 - Navegação simplificada
 - Adaptação para diferentes dispositivos
 
-### 4. Automação
+### 5. Automação
+
 - Scripts para processamento de dados
 - Validação automática de informações
 - Backup do banco de dados
 - Importação de dados via texto
 
 ## 🛠️ Estrutura do Projeto
+
 ```
 manifestwebsite/
 ├── app/                    # Código principal da aplicação
@@ -53,11 +69,13 @@ manifestwebsite/
 ## 🔧 Configuração do Ambiente
 
 1. **Pré-requisitos**
+
    - Node.js 18+
    - MongoDB
    - npm ou yarn
 
 2. **Instalação**
+
    ```bash
    # Clonar o repositório
    git clone [URL_DO_REPOSITÓRIO]
@@ -73,19 +91,27 @@ manifestwebsite/
    ```
 
 3. **Configuração do Banco de Dados**
+
    - Criar banco de dados MongoDB
    - Configurar string de conexão no .env.local
    - Executar scripts de inicialização
 
+4. **Configuração da Integração com Twitch (Opcional)**
+   - Criar aplicação na [Twitch Developer Console](https://dev.twitch.tv/console)
+   - Obter Client ID e Client Secret
+   - Configurar variáveis de ambiente no .env.local
+   - Ver arquivo `TWITCH_SETUP.md` para instruções detalhadas
+
 ## 📊 Modelo de Dados
 
 ### Partida (Match)
+
 ```typescript
 interface Match {
   date: string;
   team1: string;
   team2: string;
-  result: 'Victory' | 'Defeat';
+  result: "Victory" | "Defeat";
   team1Score: number;
   team2Score: number;
   team1Players: PlayerStats[];
@@ -94,6 +120,7 @@ interface Match {
 ```
 
 ### Estatísticas do Jogador (PlayerStats)
+
 ```typescript
 interface PlayerStats {
   name: string;
@@ -109,6 +136,7 @@ interface PlayerStats {
 ## 🚀 Scripts Úteis
 
 ### Processamento de Dados
+
 ```bash
 # Processar dados de uma partida
 node scripts/quick-submit.js
@@ -123,17 +151,20 @@ node scripts/restore-db.js
 ## 🔍 Pontos de Destaque para Portfólio
 
 1. **Arquitetura Moderna**
+
    - Uso de Next.js 14 com App Router
    - API Routes para backend
    - TypeScript para tipagem estática
 
 2. **Boas Práticas**
+
    - Código organizado e documentado
    - Validação de dados
    - Tratamento de erros
    - Testes automatizados
 
 3. **Recursos Técnicos**
+
    - Integração com MongoDB
    - Automação de processos
    - Interface responsiva
@@ -146,14 +177,21 @@ node scripts/restore-db.js
    - Versionamento com Git
 
 ## 📈 Melhorias Futuras
+
 - [ ] Sistema de autenticação
 - [ ] Dashboard administrativo
 - [ ] Exportação de relatórios
 - [ ] Integração com Discord
 - [ ] Sistema de notificações
+- [ ] Chat da Twitch integrado
+- [ ] Notificações de streams ao vivo
+- [ ] Clips automáticos de momentos épicos
+- [ ] Estatísticas de streams dos membros
 
 ## 🤝 Contribuição
+
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
 
 ## 📝 Licença
+
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
