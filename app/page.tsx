@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Match } from './data/matches';
+import SpiderWebBackground from './components/SpiderWebBackground';
+import TwitchStreams from './components/TwitchStreams';
 
 const GUILD_STREAMERS = [
   "lilly_x",        // TOUSHIRO
@@ -96,7 +98,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-gray-900 to-black">
+      <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-gray-900 to-black overflow-hidden">
+        <SpiderWebBackground />
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -187,8 +190,9 @@ export default function Home() {
       <section className="py-20 bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">Nossos membros</h2>
-          <div className="flex justify-center">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8 w-full max-w-4xl">
+          <div className="flex flex-col md:flex-row gap-12 justify-center items-start">
+            <TwitchStreams />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-8 w-full max-w-2xl">
               <div className="bg-gray-800 rounded-lg p-6 text-center">
                 <div className="text-4xl font-bold text-green-400 mb-2">30</div>
                 <div className="text-gray-400">Membros</div>
@@ -240,54 +244,6 @@ export default function Home() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Our W's Section - Inspired by Armbrows */}
-      <section className="py-20 bg-gray-800">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16">Nossos W's</h2>
-          <p className="text-xl text-center text-gray-400 mb-12">Melhores momentos</p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Node War Victory */}
-            <div className="bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors">
-              <div className="h-48 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                <span className="text-6xl">⚔️</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-2 text-green-400"></h3>
-                <p className="text-gray-400 mb-4"></p>
-                <div className="text-sm text-gray-300">
-                </div>
-              </div>
-            </div>
-
-            {/* Guild League Victory */}
-            <div className="bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors">
-              <div className="h-48 bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center">
-                <span className="text-6xl">🏆</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-2 text-yellow-400"></h3>
-                <p className="text-gray-400 mb-4"></p>
-                <div className="text-sm text-gray-300">
-                </div>
-              </div>
-            </div>
-
-            {/* Tournament Victory */}
-            <div className="bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors">
-              <div className="h-48 bg-gradient-to-br from-red-600 to-purple-600 flex items-center justify-center">
-                <span className="text-6xl">🎯</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-2 text-red-400"></h3>
-                <p className="text-gray-400 mb-4"></p>
-                <div className="text-sm text-gray-300">
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
