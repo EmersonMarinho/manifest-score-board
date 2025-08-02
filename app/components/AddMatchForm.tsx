@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Match } from '../data/matches';
 
 interface AddMatchFormProps {
@@ -10,6 +10,7 @@ interface AddMatchFormProps {
 }
 
 export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: AddMatchFormProps) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -20,7 +21,7 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
 
   // Função para calcular o total de pontos de uma equipe
   const calculateTeamScore = (teamNumber: 1 | 2, fb1 = team1FirstBlood, fb2 = team2FirstBlood) => {
-    const form = document.querySelector('form');
+    const form = formRef.current;
     if (!form) return 0;
 
     let total = 0;
@@ -88,52 +89,75 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
 
   // Inicializar totais quando o componente montar
   useEffect(() => {
-    setTimeout(() => {
-      setTeam1TotalKills(calculateTeamScore(1));
-      setTeam2TotalKills(calculateTeamScore(2));
-    }, 0);
+    if (formRef.current) {
+      setTimeout(() => {
+        setTeam1TotalKills(calculateTeamScore(1));
+        setTeam2TotalKills(calculateTeamScore(2));
+      }, 0);
+    }
   }, []);
 
   // Reset form when editingMatch changes
   useEffect(() => {
-    if (editingMatch) {
-      const form = document.querySelector('form');
-      if (form) {
-        // Set match details
-        (form.querySelector('[name="date"]') as HTMLInputElement).value = editingMatch.date;
-        (form.querySelector('[name="opponent"]') as HTMLInputElement).value = editingMatch.team2;
-        (form.querySelector('[name="result"]') as HTMLSelectElement).value = editingMatch.result;
-        (form.querySelector('[name="team1Score"]') as HTMLInputElement).value = editingMatch.team1Score.toString();
-        (form.querySelector('[name="team2Score"]') as HTMLInputElement).value = editingMatch.team2Score.toString();
+    if (editingMatch && formRef.current) {
+      const form = formRef.current;
+      
+      // Set match details
+      const dateInput = form.querySelector('[name="date"]') as HTMLInputElement;
+      const opponentInput = form.querySelector('[name="opponent"]') as HTMLInputElement;
+      const resultSelect = form.querySelector('[name="result"]') as HTMLSelectElement;
+      const team1ScoreInput = form.querySelector('[name="team1Score"]') as HTMLInputElement;
+      const team2ScoreInput = form.querySelector('[name="team2Score"]') as HTMLInputElement;
 
-        // Set team 1 players
-        editingMatch.team1Players.forEach((player, index) => {
-          (form.querySelector(`[name="player${index + 1}"]`) as HTMLInputElement).value = player.name;
-          (form.querySelector(`[name="kills${index + 1}"]`) as HTMLInputElement).value = player.kills.toString();
-          (form.querySelector(`[name="deaths${index + 1}"]`) as HTMLInputElement).value = player.deaths.toString();
-          (form.querySelector(`[name="debuffs${index + 1}"]`) as HTMLInputElement).value = player.debuffs.toString();
-          (form.querySelector(`[name="damage${index + 1}"]`) as HTMLInputElement).value = player.damage.toString();
-          (form.querySelector(`[name="damageTaken${index + 1}"]`) as HTMLInputElement).value = player.damageTaken.toString();
-          (form.querySelector(`[name="healing${index + 1}"]`) as HTMLInputElement).value = player.healing.toString();
-        });
+      if (dateInput) dateInput.value = editingMatch.date;
+      if (opponentInput) opponentInput.value = editingMatch.team2;
+      if (resultSelect) resultSelect.value = editingMatch.result;
+      if (team1ScoreInput) team1ScoreInput.value = editingMatch.team1Score.toString();
+      if (team2ScoreInput) team2ScoreInput.value = editingMatch.team2Score.toString();
 
-        // Set team 2 players
-        editingMatch.team2Players.forEach((player, index) => {
-          (form.querySelector(`[name="opponent${index + 1}"]`) as HTMLInputElement).value = player.name;
-          (form.querySelector(`[name="opponentKills${index + 1}"]`) as HTMLInputElement).value = player.kills.toString();
-          (form.querySelector(`[name="opponentDeaths${index + 1}"]`) as HTMLInputElement).value = player.deaths.toString();
-          (form.querySelector(`[name="opponentDebuffs${index + 1}"]`) as HTMLInputElement).value = player.debuffs.toString();
-          (form.querySelector(`[name="opponentDamage${index + 1}"]`) as HTMLInputElement).value = player.damage.toString();
-          (form.querySelector(`[name="opponentDamageTaken${index + 1}"]`) as HTMLInputElement).value = player.damageTaken.toString();
-          (form.querySelector(`[name="opponentHealing${index + 1}"]`) as HTMLInputElement).value = player.healing.toString();
-        });
+      // Set team 1 players
+      editingMatch.team1Players.forEach((player, index) => {
+        const playerInput = form.querySelector(`[name="player${index + 1}"]`) as HTMLInputElement;
+        const killsInput = form.querySelector(`[name="kills${index + 1}"]`) as HTMLInputElement;
+        const deathsInput = form.querySelector(`[name="deaths${index + 1}"]`) as HTMLInputElement;
+        const debuffsInput = form.querySelector(`[name="debuffs${index + 1}"]`) as HTMLInputElement;
+        const damageInput = form.querySelector(`[name="damage${index + 1}"]`) as HTMLInputElement;
+        const damageTakenInput = form.querySelector(`[name="damageTaken${index + 1}"]`) as HTMLInputElement;
+        const healingInput = form.querySelector(`[name="healing${index + 1}"]`) as HTMLInputElement;
 
-        // Recalcular totais após carregar os dados
-        setTimeout(() => {
-          setTeam1TotalKills(calculateTeamScore(1));
-          setTeam2TotalKills(calculateTeamScore(2));
-        }, 0);
-      }
+        if (playerInput) playerInput.value = player.name;
+        if (killsInput) killsInput.value = player.kills.toString();
+        if (deathsInput) deathsInput.value = player.deaths.toString();
+        if (debuffsInput) debuffsInput.value = player.debuffs.toString();
+        if (damageInput) damageInput.value = player.damage.toString();
+        if (damageTakenInput) damageTakenInput.value = player.damageTaken.toString();
+        if (healingInput) healingInput.value = player.healing.toString();
+      });
+
+      // Set team 2 players
+      editingMatch.team2Players.forEach((player, index) => {
+        const playerInput = form.querySelector(`[name="opponent${index + 1}"]`) as HTMLInputElement;
+        const killsInput = form.querySelector(`[name="opponentKills${index + 1}"]`) as HTMLInputElement;
+        const deathsInput = form.querySelector(`[name="opponentDeaths${index + 1}"]`) as HTMLInputElement;
+        const debuffsInput = form.querySelector(`[name="opponentDebuffs${index + 1}"]`) as HTMLInputElement;
+        const damageInput = form.querySelector(`[name="opponentDamage${index + 1}"]`) as HTMLInputElement;
+        const damageTakenInput = form.querySelector(`[name="opponentDamageTaken${index + 1}"]`) as HTMLInputElement;
+        const healingInput = form.querySelector(`[name="opponentHealing${index + 1}"]`) as HTMLInputElement;
+
+        if (playerInput) playerInput.value = player.name;
+        if (killsInput) killsInput.value = player.kills.toString();
+        if (deathsInput) deathsInput.value = player.deaths.toString();
+        if (debuffsInput) debuffsInput.value = player.debuffs.toString();
+        if (damageInput) damageInput.value = player.damage.toString();
+        if (damageTakenInput) damageTakenInput.value = player.damageTaken.toString();
+        if (healingInput) healingInput.value = player.healing.toString();
+      });
+
+      // Recalcular totais após carregar os dados
+      setTimeout(() => {
+        setTeam1TotalKills(calculateTeamScore(1));
+        setTeam2TotalKills(calculateTeamScore(2));
+      }, 0);
     }
   }, [editingMatch]);
 
@@ -142,7 +166,9 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
     setLoading(true);
     setMessage('');
 
-    const form = e.currentTarget;
+    const form = formRef.current;
+    if (!form) return;
+
     const formData = new FormData(form);
     const matchData = {
       ...(editingMatch?._id ? { _id: editingMatch._id } : {}),
@@ -228,7 +254,7 @@ export default function AddMatchForm({ onAddMatch, onEditMatch, editingMatch }: 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} ref={formRef} className="space-y-6">
       {message && (
         <div className={`p-4 rounded-lg ${
           messageType === 'success' ? 'bg-green-600' : 'bg-red-600'
