@@ -185,6 +185,13 @@ function RivalStatsContent() {
     setSelectedMatchForModal(null);
   };
 
+  // Função para voltar do modal de detalhes para o modal de partidas
+  const goBackToPlayerMatches = () => {
+    setShowMatchDetailsModal(false);
+    setSelectedMatchForModal(null);
+    // Mantém o modal de partidas do player aberto
+  };
+
   React.useEffect(() => {
     if (rivalFromUrl && rivalFromUrl !== selectedRival) {
       setSelectedRival(rivalFromUrl);
@@ -1526,12 +1533,19 @@ function RivalStatsContent() {
       {/* Modal de Partidas do Player */}
       {showPlayerMatchesModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className={`bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden transition-all duration-300 ${
+            showMatchDetailsModal ? 'scale-95 opacity-50' : 'scale-100 opacity-100'
+          }`}>
             <div className="bg-gray-900 p-6 border-b border-gray-700">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-purple-400">
-                  Partidas de {selectedPlayerForModal} vs {selectedRival}
-                </h2>
+                <div>
+                  <h2 className="text-2xl font-bold text-purple-400">
+                    Partidas de {selectedPlayerForModal} vs {selectedRival}
+                  </h2>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Clique em "Ver Detalhes da Partida" para ver estatísticas completas
+                  </p>
+                </div>
                 <button
                   onClick={closeModals}
                   className="text-gray-400 hover:text-white text-2xl"
@@ -1541,7 +1555,9 @@ function RivalStatsContent() {
               </div>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className={`p-6 overflow-y-auto max-h-[calc(90vh-120px)] ${
+              showMatchDetailsModal ? 'pointer-events-none' : ''
+            }`}>
               {(() => {
                 const playerMatches = getPlayerMatches(selectedPlayerForModal);
                 if (playerMatches.length === 0) {
@@ -1637,13 +1653,24 @@ function RivalStatsContent() {
 
       {/* Modal de Detalhes da Partida */}
       {showMatchDetailsModal && selectedMatchForModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
           <div className="bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <div className="bg-gray-900 p-6 border-b border-gray-700">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-purple-400">
-                  Detalhes da Partida: {selectedMatchForModal.team1} vs {selectedMatchForModal.team2}
-                </h2>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={goBackToPlayerMatches}
+                    className="text-purple-400 hover:text-purple-300 flex items-center space-x-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span>Voltar</span>
+                  </button>
+                  <h2 className="text-2xl font-bold text-purple-400">
+                    Detalhes da Partida: {selectedMatchForModal.team1} vs {selectedMatchForModal.team2}
+                  </h2>
+                </div>
                 <button
                   onClick={closeModals}
                   className="text-gray-400 hover:text-white text-2xl"
