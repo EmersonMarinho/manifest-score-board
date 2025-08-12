@@ -4,14 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Match } from './data/matches';
 import SpiderWebBackground from './components/SpiderWebBackground';
-import TwitchStreams from './components/TwitchStreams';
-
-const GUILD_STREAMERS = [
-  "lilly_x",        // TOUSHIRO
-  "xizo_pardinho",  // XIZO
-  "srmuskiito",     // Skito (corrigido)
-  // ...outros
-];
 
 export default function Home() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -186,37 +178,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Members Live Now Section */}
+      {/* Members Stats Section */}
       <section className="py-20 bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">Nossos membros</h2>
-          <div className="flex flex-col md:flex-row gap-12 justify-center items-start">
-            <TwitchStreams />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-8 w-full max-w-2xl">
-              <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-4xl font-bold text-green-400 mb-2">30</div>
-                <div className="text-gray-400">Membros</div>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-4xl font-bold text-blue-400 mb-2">126</div>
-                <div className="text-gray-400">Dec Kharazad</div>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-4xl font-bold text-purple-400 mb-2">12</div>
-                <div className="text-gray-400">Armas Dec</div>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-4xl font-bold text-yellow-400 mb-2">30</div>
-                <div className="text-gray-400">Guru 50</div>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-4xl font-bold text-red-400 mb-2">24/7</div>
-                <div className="text-gray-400">Ativos</div>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-4xl font-bold text-pink-400 mb-2">100%</div>
-                <div className="text-gray-400">Dedicados</div>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 max-w-6xl mx-auto">
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-4xl font-bold text-green-400 mb-2">30</div>
+              <div className="text-gray-400">Membros</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-4xl font-bold text-blue-400 mb-2">126</div>
+              <div className="text-gray-400">Dec Kharazad</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-4xl font-bold text-purple-400 mb-2">12</div>
+              <div className="text-gray-400">Armas Dec</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-4xl font-bold text-yellow-400 mb-2">30</div>
+              <div className="text-gray-400">Guru 50</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-4xl font-bold text-red-400 mb-2">24/7</div>
+              <div className="text-gray-400">Ativos</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-4xl font-bold text-pink-400 mb-2">100%</div>
+              <div className="text-gray-400">Dedicados</div>
             </div>
           </div>
         </div>

@@ -90,15 +90,68 @@ function RivalStatsContent() {
   const [compareMode, setCompareMode] = React.useState(false);
   const [selectedManifestPlayer, setSelectedManifestPlayer] = React.useState('');
   const [selectedRivalPlayer, setSelectedRivalPlayer] = React.useState('');
-  const [sortBy, setSortBy] = React.useState<'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing'>('kills');
-  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
+  
+  // Estados de ordenação separados para cada tabela
+  const [manifestSortBy, setManifestSortBy] = React.useState<'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate'>('kills');
+  const [manifestSortOrder, setManifestSortOrder] = React.useState<'asc' | 'desc'>('desc');
+  
+  const [rivalSortBy, setRivalSortBy] = React.useState<'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate'>('kills');
+  const [rivalSortOrder, setRivalSortOrder] = React.useState<'asc' | 'desc'>('desc');
+
+  // Funções de ordenação separadas para cada tabela
+  const handleManifestSort = (field: 'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate') => {
+    if (field === manifestSortBy) {
+      setManifestSortOrder(manifestSortOrder === 'desc' ? 'asc' : 'desc');
+    } else {
+      setManifestSortBy(field);
+      setManifestSortOrder('desc');
+    }
+  };
+
+  const handleRivalSort = (field: 'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate') => {
+    if (field === rivalSortBy) {
+      setRivalSortOrder(rivalSortOrder === 'desc' ? 'asc' : 'desc');
+    } else {
+      setRivalSortBy(field);
+      setRivalSortOrder('desc');
+    }
+  };
+
+  // Componentes para cabeçalhos ordenáveis separados
+  const ManifestSortableHeader = ({ field, label }: { field: 'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate', label: string }) => (
+    <th 
+      className="text-left p-4 cursor-pointer hover:bg-gray-700"
+      onClick={() => handleManifestSort(field)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{label}</span>
+        {manifestSortBy === field && (
+          <span className="ml-1">{manifestSortOrder === 'desc' ? '↓' : '↑'}</span>
+        )}
+      </div>
+    </th>
+  );
+
+  const RivalSortableHeader = ({ field, label }: { field: 'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate', label: string }) => (
+    <th 
+      className="text-left p-4 cursor-pointer hover:bg-gray-700"
+      onClick={() => handleRivalSort(field)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{label}</span>
+        {rivalSortBy === field && (
+          <span className="ml-1">{rivalSortOrder === 'desc' ? '↓' : '↑'}</span>
+        )}
+      </div>
+    </th>
+  );
 
   // Redirect to Guilty if no rival is specified
   React.useEffect(() => {
     if (!rivalFromUrl) {
       router.push('/rival-stats?rival=Guilty');
     }
-  }, []);
+  }, [rivalFromUrl, router]);
 
   // Update URL when rival changes
   const handleRivalChange = (rival: string) => {
@@ -354,7 +407,7 @@ function RivalStatsContent() {
     return stats;
   }, [matches, selectedRival]);
 
-  // Filter players based on search terms
+  // Filter and sort players based on search terms and sort criteria
   const filteredManifestPlayers = React.useMemo(() => {
     const players = Array.from(rivalStats.playerStats.entries()).map(([name, stats]) => ({
       name,
@@ -363,12 +416,69 @@ function RivalStatsContent() {
       winRate: ((stats.victories / stats.matches) * 100).toFixed(1)
     }));
 
-    if (!manifestPlayerSearch) return players;
+    let filteredPlayers = players;
+    if (manifestPlayerSearch) {
+      filteredPlayers = players.filter(player =>
+        player.name.toLowerCase().includes(manifestPlayerSearch.toLowerCase())
+      );
+    }
 
-    return players.filter(player =>
-      player.name.toLowerCase().includes(manifestPlayerSearch.toLowerCase())
-    );
-  }, [rivalStats, manifestPlayerSearch]);
+    // Apply sorting
+    return filteredPlayers.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (manifestSortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'matches':
+          aValue = a.matches;
+          bValue = b.matches;
+          break;
+        case 'winRate':
+          aValue = parseFloat(a.winRate);
+          bValue = parseFloat(b.winRate);
+          break;
+        case 'kd':
+          aValue = parseFloat(String(a.kd));
+          bValue = parseFloat(String(b.kd));
+          break;
+        case 'kills':
+          aValue = a.kills;
+          bValue = b.kills;
+          break;
+        case 'deaths':
+          aValue = a.deaths;
+          bValue = b.deaths;
+          break;
+        case 'debuffs':
+          aValue = a.debuffs;
+          bValue = b.debuffs;
+          break;
+        case 'damage':
+          aValue = a.damage;
+          bValue = b.damage;
+          break;
+        case 'damageTaken':
+          aValue = a.damageTaken;
+          bValue = b.damageTaken;
+          break;
+        case 'healing':
+          aValue = a.healing;
+          bValue = b.healing;
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aValue === 'string') {
+        return manifestSortOrder === 'desc' ? String(bValue).localeCompare(String(aValue)) : String(aValue).localeCompare(String(bValue));
+      } else {
+        return manifestSortOrder === 'desc' ? bValue - aValue : aValue - bValue;
+      }
+    });
+  }, [rivalStats, manifestPlayerSearch, manifestSortBy, manifestSortOrder]);
 
   const filteredRivalPlayers = React.useMemo(() => {
     const players = Array.from(rivalStats.rivalPlayerStats[selectedRival].entries()).map(([name, stats]) => ({
@@ -378,33 +488,90 @@ function RivalStatsContent() {
       winRate: ((stats.victories / stats.matches) * 100).toFixed(1)
     }));
 
-    if (!rivalPlayerSearch) return players;
+    let filteredPlayers = players;
+    if (rivalPlayerSearch) {
+      filteredPlayers = players.filter(player =>
+        player.name.toLowerCase().includes(rivalPlayerSearch.toLowerCase())
+      );
+    }
 
-    return players.filter(player =>
-      player.name.toLowerCase().includes(rivalPlayerSearch.toLowerCase())
-    );
-  }, [rivalStats, rivalPlayerSearch, selectedRival]);
+    // Apply sorting
+    return filteredPlayers.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (rivalSortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'matches':
+          aValue = a.matches;
+          bValue = b.matches;
+          break;
+        case 'winRate':
+          aValue = parseFloat(a.winRate);
+          bValue = parseFloat(b.winRate);
+          break;
+        case 'kd':
+          aValue = parseFloat(String(a.kd));
+          bValue = parseFloat(String(b.kd));
+          break;
+        case 'kills':
+          aValue = a.kills;
+          bValue = b.kills;
+          break;
+        case 'deaths':
+          aValue = a.deaths;
+          bValue = b.deaths;
+          break;
+        case 'debuffs':
+          aValue = a.debuffs;
+          bValue = b.debuffs;
+          break;
+        case 'damage':
+          aValue = a.damage;
+          bValue = b.damage;
+          break;
+        case 'damageTaken':
+          aValue = a.damageTaken;
+          bValue = b.damageTaken;
+          break;
+        case 'healing':
+          aValue = a.healing;
+          bValue = b.healing;
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aValue === 'string') {
+        return rivalSortOrder === 'desc' ? String(bValue).localeCompare(String(aValue)) : String(aValue).localeCompare(String(bValue));
+      } else {
+        return rivalSortOrder === 'desc' ? bValue - aValue : aValue - bValue;
+      }
+    });
+  }, [rivalStats, rivalPlayerSearch, selectedRival, rivalSortBy, rivalSortOrder]);
 
   if (selectedMatch) {
     const sortPlayers = (players: any[]) => {
       const sortedPlayers = [...players].sort((a, b) => {
-        switch (sortBy) {
+        switch (manifestSortBy) {
           case 'kd':
             const kdA = a.deaths === 0 ? a.kills : a.kills / a.deaths;
             const kdB = b.deaths === 0 ? b.kills : b.kills / b.deaths;
-            return sortOrder === 'desc' ? kdB - kdA : kdA - kdB;
+            return manifestSortOrder === 'desc' ? kdB - kdA : kdA - kdB;
           case 'kills':
-            return sortOrder === 'desc' ? b.kills - a.kills : a.kills - b.kills;
+            return manifestSortOrder === 'desc' ? b.kills - a.kills : a.kills - b.kills;
           case 'deaths':
-            return sortOrder === 'desc' ? b.deaths - a.deaths : a.deaths - b.deaths;
+            return manifestSortOrder === 'desc' ? b.deaths - a.deaths : a.deaths - b.deaths;
           case 'debuffs':
-            return sortOrder === 'desc' ? b.debuffs - a.debuffs : a.debuffs - b.debuffs;
+            return manifestSortOrder === 'desc' ? b.debuffs - a.debuffs : a.debuffs - b.debuffs;
           case 'damage':
-            return sortOrder === 'desc' ? b.damage - a.damage : a.damage - b.damage;
+            return manifestSortOrder === 'desc' ? b.damage - a.damage : a.damage - b.damage;
           case 'damageTaken':
-            return sortOrder === 'desc' ? b.damageTaken - a.damageTaken : a.damageTaken - b.damageTaken;
+            return manifestSortOrder === 'desc' ? b.damageTaken - a.damageTaken : a.damageTaken - b.damageTaken;
           case 'healing':
-            return sortOrder === 'desc' ? b.healing - a.healing : a.healing - b.healing;
+            return manifestSortOrder === 'desc' ? b.healing - a.healing : a.healing - b.healing;
           default:
             return 0;
         }
@@ -412,12 +579,12 @@ function RivalStatsContent() {
       return sortedPlayers;
     };
 
-    const handleSort = (newSortBy: typeof sortBy) => {
-      if (newSortBy === sortBy) {
-        setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+    const handleSort = (newSortBy: typeof manifestSortBy) => {
+      if (newSortBy === manifestSortBy) {
+        setManifestSortOrder(manifestSortOrder === 'desc' ? 'asc' : 'desc');
       } else {
-        setSortBy(newSortBy);
-        setSortOrder('desc');
+        setManifestSortBy(newSortBy);
+        setManifestSortOrder('desc');
       }
     };
 
@@ -437,14 +604,14 @@ function RivalStatsContent() {
       </svg>
     );
 
-    const TableHeader = ({ label, value }: { label: string; value: typeof sortBy }) => (
+    const TableHeader = ({ label, value }: { label: string; value: typeof manifestSortBy }) => (
       <th 
         className="text-left p-4 cursor-pointer group hover:bg-purple-700 transition-colors"
         onClick={() => handleSort(value)}
       >
         <span className="flex items-center">
           {label}
-          <SortIcon active={sortBy === value} order={sortOrder} />
+          <SortIcon active={manifestSortBy === value} order={manifestSortOrder} />
         </span>
       </th>
     );
@@ -1189,16 +1356,16 @@ function RivalStatsContent() {
                       <table className="w-full">
                         <thead className="bg-gray-900">
                           <tr>
-                            <th className="text-left p-4">Player</th>
-                            <th className="text-left p-4">Matches</th>
-                            <th className="text-left p-4">Win Rate</th>
-                            <th className="text-left p-4">K/D</th>
-                            <th className="text-left p-4">Kills</th>
-                            <th className="text-left p-4">Deaths</th>
-                            <th className="text-left p-4">Debuffs</th>
-                            <th className="text-left p-4">Damage</th>
-                            <th className="text-left p-4">Taken</th>
-                            <th className="text-left p-4">Healing</th>
+                            <ManifestSortableHeader field="name" label="Player" />
+                            <ManifestSortableHeader field="matches" label="Matches" />
+                            <ManifestSortableHeader field="winRate" label="Win Rate" />
+                            <ManifestSortableHeader field="kd" label="K/D" />
+                            <ManifestSortableHeader field="kills" label="Kills" />
+                            <ManifestSortableHeader field="deaths" label="Deaths" />
+                            <ManifestSortableHeader field="debuffs" label="Debuffs" />
+                            <ManifestSortableHeader field="damage" label="Damage" />
+                            <ManifestSortableHeader field="damageTaken" label="Taken" />
+                            <ManifestSortableHeader field="healing" label="Healing" />
                           </tr>
                         </thead>
                         <tbody>
@@ -1240,16 +1407,16 @@ function RivalStatsContent() {
                       <table className="w-full">
                         <thead className="bg-gray-900">
                           <tr>
-                            <th className="text-left p-4">Player</th>
-                            <th className="text-left p-4">Matches</th>
-                            <th className="text-left p-4">Win Rate</th>
-                            <th className="text-left p-4">K/D</th>
-                            <th className="text-left p-4">Kills</th>
-                            <th className="text-left p-4">Deaths</th>
-                            <th className="text-left p-4">Debuffs</th>
-                            <th className="text-left p-4">Damage</th>
-                            <th className="text-left p-4">Taken</th>
-                            <th className="text-left p-4">Healing</th>
+                            <RivalSortableHeader field="name" label="Player" />
+                            <RivalSortableHeader field="matches" label="Matches" />
+                            <RivalSortableHeader field="winRate" label="Win Rate" />
+                            <RivalSortableHeader field="kd" label="K/D" />
+                            <RivalSortableHeader field="kills" label="Kills" />
+                            <RivalSortableHeader field="deaths" label="Deaths" />
+                            <RivalSortableHeader field="debuffs" label="Debuffs" />
+                            <RivalSortableHeader field="damage" label="Damage" />
+                            <RivalSortableHeader field="damageTaken" label="Taken" />
+                            <RivalSortableHeader field="healing" label="Healing" />
                           </tr>
                         </thead>
                         <tbody>

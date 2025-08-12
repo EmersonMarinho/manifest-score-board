@@ -128,7 +128,18 @@ export default function Resume() {
     return [...calculatePlayerStats].sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
-      return sortOrder === 'desc' ? (bValue as number) - (aValue as number) : (aValue as number) - (bValue as number);
+      
+      // Handle string fields (like name) differently from numeric fields
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'desc' 
+          ? bValue.localeCompare(aValue) 
+          : aValue.localeCompare(bValue);
+      }
+      
+      // Handle numeric fields
+      return sortOrder === 'desc' 
+        ? (bValue as number) - (aValue as number) 
+        : (aValue as number) - (bValue as number);
     });
   }, [calculatePlayerStats, sortField, sortOrder]);
 
