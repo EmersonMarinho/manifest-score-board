@@ -91,6 +91,12 @@ function RivalStatsContent() {
   const [selectedManifestPlayer, setSelectedManifestPlayer] = React.useState('');
   const [selectedRivalPlayer, setSelectedRivalPlayer] = React.useState('');
   
+  // Estados para os modais de player
+  const [showPlayerMatchesModal, setShowPlayerMatchesModal] = React.useState(false);
+  const [showMatchDetailsModal, setShowMatchDetailsModal] = React.useState(false);
+  const [selectedPlayerForModal, setSelectedPlayerForModal] = React.useState('');
+  const [selectedMatchForModal, setSelectedMatchForModal] = React.useState<Match | null>(null);
+  
   // Estados de ordenação separados para cada tabela
   const [manifestSortBy, setManifestSortBy] = React.useState<'name' | 'kd' | 'kills' | 'deaths' | 'debuffs' | 'damage' | 'damageTaken' | 'healing' | 'matches' | 'winRate'>('kills');
   const [manifestSortOrder, setManifestSortOrder] = React.useState<'asc' | 'desc'>('desc');
@@ -157,6 +163,26 @@ function RivalStatsContent() {
   const handleRivalChange = (rival: string) => {
     setSelectedRival(rival);
     router.push(`/rival-stats?rival=${rival}`);
+  };
+
+  // Função para abrir modal de partidas do player
+  const openPlayerMatchesModal = (playerName: string) => {
+    setSelectedPlayerForModal(playerName);
+    setShowPlayerMatchesModal(true);
+  };
+
+  // Função para abrir modal de detalhes da partida
+  const openMatchDetailsModal = (match: Match) => {
+    setSelectedMatchForModal(match);
+    setShowMatchDetailsModal(true);
+  };
+
+  // Função para fechar modais
+  const closeModals = () => {
+    setShowPlayerMatchesModal(false);
+    setShowMatchDetailsModal(false);
+    setSelectedPlayerForModal('');
+    setSelectedMatchForModal(null);
   };
 
   React.useEffect(() => {
@@ -406,6 +432,22 @@ function RivalStatsContent() {
 
     return stats;
   }, [matches, selectedRival]);
+
+  // Função para obter partidas de um player específico contra o rival selecionado
+  const getPlayerMatches = (playerName: string) => {
+    return matches.filter(match => {
+      const isManifestMatch = (match.team1 === 'Manifest' && match.team2 === selectedRival) ||
+                             (match.team2 === 'Manifest' && match.team1 === selectedRival);
+      
+      if (!isManifestMatch) return false;
+      
+      const manifestPlayers = match.team1 === 'Manifest' ? match.team1Players : match.team2Players;
+      const rivalPlayers = match.team1 === selectedRival ? match.team1Players : match.team2Players;
+      
+      return manifestPlayers.some(p => p.name === playerName) || 
+             rivalPlayers.some(p => p.name === playerName);
+    });
+  };
 
   // Filter and sort players based on search terms and sort criteria
   const filteredManifestPlayers = React.useMemo(() => {
@@ -1173,7 +1215,18 @@ function RivalStatsContent() {
                           }`}
                           onClick={() => setSelectedManifestPlayer(player.name)}
                         >
-                          {player.name}
+                          <div className="flex justify-between items-center">
+                            <span>{player.name}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPlayerMatchesModal(player.name);
+                              }}
+                              className="text-purple-400 hover:text-purple-300 text-sm underline"
+                            >
+                              Ver Partidas
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1200,7 +1253,18 @@ function RivalStatsContent() {
                           }`}
                           onClick={() => setSelectedRivalPlayer(player.name)}
                         >
-                          {player.name}
+                          <div className="flex justify-between items-center">
+                            <span>{player.name}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPlayerMatchesModal(player.name);
+                              }}
+                              className="text-purple-400 hover:text-purple-300 text-sm underline"
+                            >
+                              Ver Partidas
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1371,7 +1435,14 @@ function RivalStatsContent() {
                         <tbody>
                           {filteredManifestPlayers.map((player, index) => (
                             <tr key={player.name} className={index % 2 === 0 ? 'bg-gray-900' : ''}>
-                              <td className="p-4 font-medium">{player.name}</td>
+                              <td className="p-4 font-medium">
+                                <button
+                                  onClick={() => openPlayerMatchesModal(player.name)}
+                                  className="text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                                >
+                                  {player.name}
+                                </button>
+                              </td>
                               <td className="p-4">{player.matches}</td>
                               <td className="p-4">{player.winRate}%</td>
                               <td className="p-4">{player.kd}</td>
@@ -1422,7 +1493,14 @@ function RivalStatsContent() {
                         <tbody>
                           {filteredRivalPlayers.map((player, index) => (
                             <tr key={player.name} className={index % 2 === 0 ? 'bg-gray-900' : ''}>
-                              <td className="p-4 font-medium">{player.name}</td>
+                              <td className="p-4 font-medium">
+                                <button
+                                  onClick={() => openPlayerMatchesModal(player.name)}
+                                  className="text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                                >
+                                  {player.name}
+                                </button>
+                              </td>
                               <td className="p-4">{player.matches}</td>
                               <td className="p-4">{player.winRate}%</td>
                               <td className="p-4">{player.kd}</td>
@@ -1444,6 +1522,226 @@ function RivalStatsContent() {
           </section>
         </div>
       </main>
+
+      {/* Modal de Partidas do Player */}
+      {showPlayerMatchesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="bg-gray-900 p-6 border-b border-gray-700">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-purple-400">
+                  Partidas de {selectedPlayerForModal} vs {selectedRival}
+                </h2>
+                <button
+                  onClick={closeModals}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {(() => {
+                const playerMatches = getPlayerMatches(selectedPlayerForModal);
+                if (playerMatches.length === 0) {
+                  return (
+                    <div className="text-center text-gray-400 py-8">
+                      Nenhuma partida encontrada para este player.
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="space-y-4">
+                    {playerMatches.map((match, index) => {
+                      const isManifestPlayer = match.team1 === 'Manifest' 
+                        ? match.team1Players.some(p => p.name === selectedPlayerForModal)
+                        : match.team2Players.some(p => p.name === selectedPlayerForModal);
+                      
+                      const playerStats = match.team1 === 'Manifest'
+                        ? (match.team1Players.find(p => p.name === selectedPlayerForModal) || 
+                           match.team2Players.find(p => p.name === selectedPlayerForModal))
+                        : (match.team2Players.find(p => p.name === selectedPlayerForModal) || 
+                           match.team1Players.find(p => p.name === selectedPlayerForModal));
+                      
+                      const isVictory = (match.team1 === 'Manifest' && match.result === 'Victory') ||
+                                       (match.team2 === 'Manifest' && match.result === 'Defeat');
+                      
+                      return (
+                        <div key={index} className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex items-center space-x-4">
+                              <span className={`text-lg font-bold ${
+                                isManifestPlayer 
+                                  ? (isVictory ? 'text-green-400' : 'text-red-400')
+                                  : (!isVictory ? 'text-green-400' : 'text-red-400')
+                              }`}>
+                                {isManifestPlayer 
+                                  ? (isVictory ? 'Victory' : 'Defeat')
+                                  : (!isVictory ? 'Victory' : 'Defeat')
+                                }
+                              </span>
+                              <span className="text-gray-300">
+                                {match.team1} vs {match.team2}
+                              </span>
+                            </div>
+                            <span className="text-gray-400">{match.date}</span>
+                          </div>
+                          
+                          {playerStats && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                              <div className="text-center">
+                                <div className="text-sm text-gray-400">K/D</div>
+                                <div className="text-lg font-bold text-purple-400">
+                                  {playerStats.kills}/{playerStats.deaths}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm text-gray-400">Damage</div>
+                                <div className="text-lg font-bold text-blue-400">
+                                  {playerStats.damage.toLocaleString()}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm text-gray-400">Debuffs</div>
+                                <div className="text-lg font-bold text-yellow-400">
+                                  {playerStats.debuffs}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm text-gray-400">Healing</div>
+                                <div className="text-lg font-bold text-green-400">
+                                  {playerStats.healing.toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <button
+                            onClick={() => openMatchDetailsModal(match)}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Ver Detalhes da Partida
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalhes da Partida */}
+      {showMatchDetailsModal && selectedMatchForModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="bg-gray-900 p-6 border-b border-gray-700">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-purple-400">
+                  Detalhes da Partida: {selectedMatchForModal.team1} vs {selectedMatchForModal.team2}
+                </h2>
+                <button
+                  onClick={closeModals}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="text-gray-400 mt-2">{selectedMatchForModal.date}</p>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Team 1 */}
+                <div className="bg-gray-700 rounded-lg overflow-hidden">
+                  <div className="bg-gray-600 p-4">
+                    <h3 className="text-xl font-bold text-green-400">
+                      {selectedMatchForModal.team1} 
+                      <span className="ml-2 text-sm text-gray-300">
+                        [{selectedMatchForModal.team1 === 'Manifest' ? 'Guild Defender' : 'Rival'}]
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-600">
+                        <tr>
+                          <th className="text-left p-3">Player</th>
+                          <th className="text-left p-3">K/D</th>
+                          <th className="text-left p-3">Debuffs</th>
+                          <th className="text-left p-3">Damage</th>
+                          <th className="text-left p-3">Healing</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedMatchForModal.team1Players.map((player, index) => (
+                          <tr key={index} className={index % 2 === 0 ? 'bg-gray-800' : ''}>
+                            <td className="p-3 font-medium">{player.name}</td>
+                            <td className="p-3">
+                              {player.kills}/{player.deaths}
+                              <span className="text-sm text-gray-400 ml-2">
+                                ({player.deaths === 0 ? player.kills : (player.kills / player.deaths).toFixed(2)})
+                              </span>
+                            </td>
+                            <td className="p-3">{player.debuffs}</td>
+                            <td className="p-3">{player.damage.toLocaleString()}</td>
+                            <td className="p-3">{player.healing.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Team 2 */}
+                <div className="bg-gray-700 rounded-lg overflow-hidden">
+                  <div className="bg-gray-600 p-4">
+                    <h3 className="text-xl font-bold text-red-400">
+                      {selectedMatchForModal.team2}
+                      <span className="ml-2 text-sm text-gray-300">
+                        [{selectedMatchForModal.team2 === 'Manifest' ? 'Guild Defender' : 'Rival'}]
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-600">
+                        <tr>
+                          <th className="text-left p-3">Player</th>
+                          <th className="text-left p-3">K/D</th>
+                          <th className="text-left p-3">Debuffs</th>
+                          <th className="text-left p-3">Damage</th>
+                          <th className="text-left p-3">Healing</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedMatchForModal.team2Players.map((player, index) => (
+                          <tr key={index} className={index % 2 === 0 ? 'bg-gray-800' : ''}>
+                            <td className="p-3 font-medium">{player.name}</td>
+                            <td className="p-3">
+                              {player.kills}/{player.deaths}
+                              <span className="text-sm text-gray-400 ml-2">
+                                ({player.deaths === 0 ? player.kills : (player.kills / player.deaths).toFixed(2)})
+                              </span>
+                            </td>
+                            <td className="p-3">{player.debuffs}</td>
+                            <td className="p-3">{player.damage.toLocaleString()}</td>
+                            <td className="p-3">{player.healing.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
